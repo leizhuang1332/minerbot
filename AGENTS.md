@@ -2,3 +2,30 @@
 
 1. **强制简体中文**：无论输入或工具返回何种语言，所有交互回复必须始终使用简体中文。
 2. **翻译与保留**：工具或系统输出的英文信息需翻译为中文，代码、链接及技术术语保留原文。
+
+# 环境规范
+
+本项目使用 **uv** 管理 Python 依赖和虚拟环境。
+
+## 强制规则
+
+1. **所有 Python 命令必须使用 `uv run` 执行**
+   - ✅ 正确：`uv run python script.py`
+   - ✅ 正确：`uv run pytest`
+   - ✅ 正确：`uv run python -m pytest tests/`
+   - ❌ 错误：`python script.py`（未激活虚拟环境）
+
+2. **安装依赖必须使用 uv**
+   - 添加依赖：`uv add <package>`
+   - 添加开发依赖：`uv add <package> --dev`
+   - 同步依赖：`uv sync`
+
+3. **禁止直接使用系统 Python 或全局 pip**
+   - 禁止：`pip install ...`
+   - 禁止：`python -m pip ...`
+
+## 虚拟环境
+
+- 虚拟环境位置：`.venv/`
+- Python 版本：3.13（见 pyproject.toml）
+- 依赖配置：pyproject.toml
