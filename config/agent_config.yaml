@@ -1,0 +1,25 @@
+# Agent Configurations
+
+# Tool Agent Configuration
+tool_agent:
+  name: "工具调用智能体"
+  role: "解决需要工具的任务（计算、搜索）"
+  llm: "gpt-3.5-turbo"
+  temperature: 0.1
+  tools: ["calculator", "search"]
+
+# Chat Agent Configuration
+chat_agent:
+  name: "对话智能体"
+  role: "处理日常对话和问答"
+  llm: "gpt-3.5-turbo"
+  temperature: 0.7
+  system_prompt: "你是一个友好的AI助手"
+
+# Multi Agent Configuration
+multi_agent:
+  name: "协作智能体组"
+  members: ["tool_agent", "chat_agent"]
+  coordination_mode: "round_robin"
+  max_iterations: 5
+  timeout: 60

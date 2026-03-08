@@ -1,0 +1,1 @@
+# MinerBot - AI Assistant Package

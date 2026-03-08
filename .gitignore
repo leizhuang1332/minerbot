@@ -1,2 +1,9 @@
-*.pyc
-src/minerbot/core/__pycache__/agent.cpython-313.pyc
+# Python bytecode
+*.py[cod]
+*$py.class
+__pycache__/
+
+# Specific pycache directories
+src/**/__pycache__/
+# macOS system files
+.DS_Store
