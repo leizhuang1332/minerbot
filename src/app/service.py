@@ -158,16 +158,25 @@ class Service:
         
         try:
             async with asyncio.timeout(timeout):
-                print("直接使用 LLM 处理（绕过 deepagents）")
                 if isinstance(input_data, str):
-                    result = await self._agent.ainvoke([HumanMessage(content=input_data)])
+                    result = await self._agent.ainvoke(
+                        {
+                            "messages": [
+                                HumanMessage(content=input_data)
+                            ]
+                        }
+                    )
                     # 提取文本内容
                     if hasattr(result, 'content'):
                         return result.content
                     return str(result)
                 
                 # 如果是 dict 格式，使用 agent
-                result = await self._agent.ainvoke(input_data)
+                result = await self._agent.ainvoke(
+                    {
+                        "messages": input_data
+                    }
+                )
                 return result
         except asyncio.TimeoutError:
             print(f"请求处理超时（{timeout}秒）")

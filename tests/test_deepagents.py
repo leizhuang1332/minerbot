@@ -202,8 +202,60 @@ def main():
         print("DeepAgents 核心功能验证完成。")
     
     return failed == 0
+from langchain.chat_models import init_chat_model
 
+def test_agent_creation():
+    """测试7: 验证 Agent 创建"""
+    print("=" * 50)
+    print("测试7: Agent 创建")
+    print("=" * 50)
+    
+    try:
+        from deepagents import create_deep_agent
+        from langchain.chat_models import init_chat_model
+        from langchain_core.messages import HumanMessage
+        from langchain_anthropic import ChatAnthropic
+
+        # model = init_chat_model(
+        #     provider="anthropic",
+        #     model="MiniMax-M2.5", 
+        #     api_key="sk-cp-ZVNwPbRA4EmhTNwSKqE3t30NGw5537tXYpshPkdc39nqJVm4IS7k2OUvzIDujufT_jIGTCHu2adxkBDgx5nu-SS66bI7Kfr0dRLlbhP_QYgtq0USVUgx3KQ",
+        #     base_url="https://api.minimaxi.com/anthropic/",
+        #     temperature=0.0
+        # )
+        model = ChatAnthropic(
+            model="minimax/MiniMax-M2.5", 
+            api_key="sk-cp-ZVNwPbRA4EmhTNwSKqE3t30NGw5537tXYpshPkdc39nqJVm4IS7k2OUvzIDujufT_jIGTCHu2adxkBDgx5nu-SS66bI7Kfr0dRLlbhP_QYgtq0USVUgx3KQ",
+            base_url="https://api.minimaxi.com/anthropic/"
+        )
+
+        agent = create_deep_agent(
+        model=model,
+        tools=[],
+        system_prompt="你是一个智能助手",
+        subagents=[],
+        )
+        # response = agent.invoke(
+        #     {
+        #         "messages": [
+        #             {
+        #                 "role": "user",
+        #                 "content": "你好",
+        #             }
+        #         ],
+        #     }, 
+        # )
+        response = agent.invoke(
+            {
+                "m": HumanMessage(content="你好"),
+            }, 
+        )
+        print(response)
+        
+    except Exception as e:
+        print(f"❌ Agent 创建验证失败: {e}")
 
 if __name__ == "__main__":
-    success = main()
-    sys.exit(0 if success else 1)
+    test_agent_creation()
+    # success = main()
+    # sys.exit(0 if success else 1)
