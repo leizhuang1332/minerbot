@@ -158,9 +158,9 @@ class Service:
         
         try:
             async with asyncio.timeout(timeout):
-                # 直接使用 LLM 处理（绕过 deepagents）
+                print("直接使用 LLM 处理（绕过 deepagents）")
                 if isinstance(input_data, str):
-                    result = await self._llm.ainvoke([HumanMessage(content=input_data)])
+                    result = await self._agent.ainvoke([HumanMessage(content=input_data)])
                     # 提取文本内容
                     if hasattr(result, 'content'):
                         return result.content
