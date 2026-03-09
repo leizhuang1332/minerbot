@@ -6,6 +6,7 @@ import sys
 from typing import Any
 
 from langchain_core.language_models import BaseChatModel
+from langchain_core.messages import HumanMessage
 
 from src.app.config import Config
 from src.agents import get_agent as get_agent_func
@@ -137,14 +138,14 @@ class Service:
             raise
     
     async def run(self, input_data: Any, timeout: float | None = None) -> Any:
-        """运行 Agent 处理请求
+        """运行 LLM 处理请求
         
         Args:
-            input_data: 输入数据
+            input_data: 输入数据（字符串）
             timeout: 超时时间（秒），默认为配置中的超时时间
             
         Returns:
-            Agent 的处理结果
+            LLM 的处理结果
             
         Raises:
             asyncio.TimeoutError: 请求超时
@@ -157,11 +158,22 @@ class Service:
         
         try:
             async with asyncio.timeout(timeout):
-                # 调用 Agent 进行处理
+                # 直接使用 LLM 处理（绕过 deepagents）
+                if isinstance(input_data, str):
+                    result = await self._llm.ainvoke([HumanMessage(content=input_data)])
+                    # 提取文本内容
+                    if hasattr(result, 'content'):
+                        return result.content
+                    return str(result)
+                
+                # 如果是 dict 格式，使用 agent
                 result = await self._agent.ainvoke(input_data)
                 return result
         except asyncio.TimeoutError:
             print(f"请求处理超时（{timeout}秒）")
+            raise
+        except Exception as e:
+            print(f"LLM 处理错误: {e}")
             raise
     
     async def stop(self) -> None:
