@@ -360,6 +360,143 @@ class MyBackend(BackendProtocol):
 
 ---
 
+## 六、Backend 在 DeepAgents 中的定位
+
+### 6.1 Backend 的核心定位
+
+**Backend 是 DeepAgents 的「文件系统抽象层」**，为 Agent 提供了与外部存储交互的能力。
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Deep Agents                           │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │              Agent Core (LLM + Tools)            │   │
+│  └─────────────────────────────────────────────────┘   │
+│                          │                              │
+│                          ▼                              │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │              Backend (文件系统抽象层)              │   │
+│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌────────┐│   │
+│  │  │ State   │ │Filesys  │ │ Store   │ │Composite││   │
+│  │  │Backend  │ │Backend  │ │Backend  │ │Backend ││   │
+│  │  └─────────┘ └─────────┘ └─────────┘ └────────┘│   │
+│  └─────────────────────────────────────────────────┘   │
+│                          │                              │
+│                          ▼                              │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐            │
+│  │  Memory  │  │   Disk   │  │   S3/DB  │            │
+│  │ (状态)    │  │ (文件)   │  │ (云存储)  │            │
+│  └──────────┘  └──────────┘  └──────────┘            │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 6.2 Backend 能解决的实际工作
+
+| 工作场景 | Backend 解决方案 | 说明 |
+|---------|----------------|------|
+| **上下文管理** | StateBackend / FilesystemBackend | 将大文件移出 Context Window，防止溢出 |
+| **长期记忆** | StoreBackend | 跨会话持久化存储 |
+| **文件操作** | FilesystemBackend | 读取、写入、编辑项目文件 |
+| **代码执行** | LocalShellBackend / Sandbox | 安全执行用户代码 |
+| **混合存储** | CompositeBackend | 同时使用多种存储策略 |
+
+**典型工作流程示例:**
+
+```python
+# 1. Agent 读取大型代码库（通过 FilesystemBackend）
+# 2. 将中间结果写入临时文件（通过 StateBackend）
+# 3. 保存重要结论到长期记忆（通过 StoreBackend）
+# 4. 执行测试命令验证代码（通过 LocalShellBackend）
+```
+
+### 6.3 与 Google ADK 对比
+
+| DeepAgents Backend | Google ADK 对应组件 | 说明 |
+|-------------------|---------------------|------|
+| FilesystemBackend | File System Tools | 文件读写能力 |
+| StateBackend | In-Memory State | 短期状态 |
+| StoreBackend | Memory / Session | 长期记忆 |
+| LocalShellBackend | Code Execution | 代码执行 |
+| CompositeBackend | Multi-tool Routing | 工具路由 |
+
+**ADK 架构概览:**
+```
+Google ADK:
+├── Agents (LLM Agent, Workflow Agent)
+├── Tools (Function Tools, MCP Tools, OpenAPI Tools)
+├── Memory (Sessions, State)
+└── Runtime (Web, CLI, API Server)
+
+DeepAgents:
+├── Agent Core (LLM + Planning)
+├── Backend (虚拟文件系统)
+│   ├── StateBackend (内存状态)
+│   ├── FilesystemBackend (磁盘文件)
+│   ├── StoreBackend (持久存储)
+│   └── LocalShellBackend (Shell执行)
+└── Middleware (HITL, Logging)
+```
+
+### 6.4 与 LangGraph 对比
+
+| DeepAgents Backend | LangGraph 对应组件 | 说明 |
+|-------------------|---------------------|------|
+| FilesystemBackend | 自定义 Tool | 需要自行实现文件工具 |
+| StateBackend | CheckpointSaver | 状态持久化 |
+| StoreBackend | BaseStore | 跨线程持久化 |
+| CompositeBackend | 自定义 Router | 需要自行实现路由逻辑 |
+
+**LangGraph 需要做的事情 vs DeepAgents Backend:**
+
+```python
+# LangGraph: 需要自行实现
+from langgraph.graph import StateGraph
+from langchain.tools import tool
+
+@tool
+def read_file(path: str):
+    # 自行实现文件读取
+    ...
+
+@tool  
+def write_file(path: str, content: str):
+    # 自行实现文件写入
+    ...
+
+# DeepAgents: 直接使用 Backend
+from deepagents import create_deep_agent
+from deepagents.backends import FilesystemBackend
+
+agent = create_deep_agent(
+    backend=FilesystemBackend(root_dir=".")
+    # 文件工具自动可用！
+)
+```
+
+### 6.5 总结
+
+| 框架特性 | DeepAgents Backend | Google ADK | LangGraph |
+|---------|-------------------|-----------|----------|
+| **抽象级别** | 高（开箱即用） | 中 | 低（需自行组装） |
+| **文件系统** | ✅ 内置 Backend | ✅ Tools | ❌ 需自行实现 |
+| **状态持久化** | ✅ 多 Backend | Memory/Session | CheckpointSaver |
+| **可插拔存储** | ✅ CompositeBackend | 需自行实现 | 需自行实现 |
+| **Shell 执行** | ✅ LocalShellBackend | ✅ Code Exec | ❌ 需自行实现 |
+
+**Backend 的核心价值:**
+1. **开箱即用** - 无需自行实现文件工具
+2. **可插拔** - 自由切换存储后端
+3. **安全性** - virtual_mode 沙箱保护
+4. **组合性** - CompositeBackend 支持混合架构
+
+---
+
+## 七、相关资源
+
+- [官方 Backends 文档](https://docs.langchain.com/oss/python/deepagents/backends)
+- [Sandboxes 文档](/oss/python/deepagents/sandboxes)
+- [Human-in-the-Loop](/oss/python/deepagents/human-in-the-loop)
+
 ## 六、相关资源
 
 - [官方 Backends 文档](https://docs.langchain.com/oss/python/deepagents/backends)
