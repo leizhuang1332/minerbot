@@ -3,7 +3,7 @@
 import asyncio
 import signal
 import sys
-from typing import Any
+from typing import Any, AsyncGenerator, Callable, Optional
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage
@@ -11,6 +11,33 @@ from langchain_core.messages import HumanMessage
 from src.app.config import Config
 from src.agents import get_agent as get_agent_func
 from src.llms import get_llm as get_llm_func
+
+
+def extract_stream_text(token) -> str:
+    """从流式响应中提取文本
+    
+    处理 MiniMax 模型的 thinking + text 结构。
+    
+    Args:
+        token: AIMessage token 对象
+        
+    Returns:
+        提取的文本内容
+    """
+    if hasattr(token, 'content') and isinstance(token.content, list):
+        texts = []
+        for item in token.content:
+            if isinstance(item, dict):
+                if 'text' in item:
+                    texts.append(item['text'])
+        return ''.join(texts)
+    elif hasattr(token, 'content') and token.content:
+        return str(token.content)
+    elif hasattr(token, 'text') and token.text:
+        return str(token.text)
+    return ''
+
+
 
 
 class Service:
@@ -182,6 +209,67 @@ class Service:
             print(f"请求处理超时（{timeout}秒）")
             raise
         except Exception as e:
+            print(f"LLM 处理错误: {e}")
+            raise
+    
+    async def stream_run(
+        self,
+        input_data: Any,
+        callback: Optional[Callable[[str], None]] = None,
+        timeout: float | None = None
+    ) -> str:
+        """流式运行 LLM 处理请求（打字机效果）
+        
+        Args:
+            input_data: 输入数据（字符串）
+            callback: 可选的回调函数，每收到一个 chunk 时调用
+            timeout: 超时时间（秒），默认为配置中的超时时间
+            
+        Returns:
+            完整的响应文本
+            
+        Raises:
+            asyncio.TimeoutError: 请求超时
+            RuntimeError: 服务未运行
+        """
+        if not self._running:
+            raise RuntimeError("服务未运行，请先调用 start()")
+        
+        timeout = timeout or self._timeout
+        full_response = []
+        
+        try:
+            async with asyncio.timeout(timeout):
+                if isinstance(input_data, str):
+                    messages = [HumanMessage(content=input_data)]
+                else:
+                    messages = input_data
+                
+                # 使用 stream_mode="messages" 进行流式响应
+                for chunk in self._agent.stream(
+                    {"messages": messages},
+                    stream_mode="messages",
+                ):
+                    token, metadata = chunk
+                    
+                    # 提取文本（处理 MiniMax 的 thinking + text 结构）
+                    text = extract_stream_text(token)
+                    
+                    if text:
+                        full_response.append(text)
+                        
+                        # 如果有回调函数，调用它
+                        if callback:
+                            callback(text)
+                
+                return ''.join(full_response)
+                
+        except asyncio.TimeoutError:
+            print(f"请求处理超时（{timeout}秒）")
+            raise
+        except Exception as e:
+            print(f"LLM 流式处理错误: {e}")
+            raise
             print(f"LLM 处理错误: {e}")
             raise
     
