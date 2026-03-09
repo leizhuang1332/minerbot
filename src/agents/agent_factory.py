@@ -6,6 +6,9 @@ from __future__ import annotations
 import warnings
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
+# Runtime imports
+from langchain_core.language_models import BaseChatModel
+
 # Type imports
 if TYPE_CHECKING:
     from langchain_core.language_models import BaseChatModel
@@ -168,8 +171,10 @@ class AgentFactory:
         # 构建参数
         create_kwargs: Dict[str, Any] = {}
         
-        # 设置模型
-        if config.model:
+        # 设置模型 - 优先使用 resolved LLM 实例
+        if isinstance(llm, BaseChatModel):
+            create_kwargs['model'] = llm  # 传递完整的 LLM 实例
+        elif config.model:
             create_kwargs['model'] = config.model
         elif isinstance(config.llm, str):
             create_kwargs['model'] = config.llm
