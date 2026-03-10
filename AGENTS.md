@@ -29,3 +29,11 @@
 - 虚拟环境位置：`.venv/`
 - Python 版本：3.13（见 pyproject.toml）
 - 依赖配置：pyproject.toml
+
+## 激活虚拟环境
+
+如需手动激活虚拟环境（不推荐，推荐使用 `uv run`）：
+
+- Windows PowerShell：`.venv\Scripts\Activate.ps1`
+- Windows CMD：`.venv\Scripts\activate.bat`
+- Linux/macOS：`source .venv/bin/activate`
