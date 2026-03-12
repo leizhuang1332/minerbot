@@ -196,7 +196,7 @@ class Service:
         """
         if not self._running:
             raise RuntimeError("服务未运行，请先调用 start()")
-        
+        print(f"正在处理请求: {input_data}")
         timeout = timeout or self._timeout
         
         try:
@@ -255,7 +255,7 @@ class Service:
         """
         if not self._running:
             raise RuntimeError("服务未运行，请先调用 start()")
-        
+        print(f"正在处理流式请求: {input_data}")
         timeout = timeout or self._timeout
         full_response = []
         
@@ -268,6 +268,7 @@ class Service:
                     
                     # 构建完整的消息列表（历史消息 + 当前输入）
                     messages = self._build_messages_with_history()
+                    print(f"历史消息数量: {len(messages)}")
                     messages.append(HumanMessage(content=input_data))
                 else:
                     messages = input_data
@@ -356,6 +357,7 @@ class Service:
         
         if self._memory_manager is not None:
             history_messages = self._memory_manager.get_messages()  # type: ignore[union-attr]
+            print(f"历史消息数量: {len(history_messages)}")
             for msg in history_messages:
                 if msg.role == "user":
                     all_messages.append(HumanMessage(content=msg.content))
