@@ -195,7 +195,14 @@ class AgentFactory:
         # 设置 tools
         if config.tools:
             create_kwargs['tools'] = config.tools
-        
+        # 设置 checkpointer (短期记忆/对话历史持久化)
+        if config.checkpointer is not None:
+            create_kwargs['checkpointer'] = config.checkpointer
+
+        # 设置 store (长期记忆存储)
+        if config.store is not None:
+            create_kwargs['store'] = config.store
+
         # 合并 extra 参数
         create_kwargs.update(config.extra)
         

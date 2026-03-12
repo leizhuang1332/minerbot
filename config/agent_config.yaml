@@ -23,3 +23,10 @@ multi_agent:
   coordination_mode: "round_robin"
   max_iterations: 5
   timeout: 60
+
+# 记忆配置 (新增)
+memory:
+  # 短期记忆 (Checkpoint)
+  checkpointer:
+    enabled: true
+    type: memory  # memory / sqlite

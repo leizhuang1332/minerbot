@@ -1,4 +1,5 @@
 """Agent Configuration
+
 Agent 配置数据类，支持灵活的 LLM 和系统提示词配置
 """
 from __future__ import annotations
@@ -28,6 +29,17 @@ if TYPE_CHECKING:
     except ImportError:
         Middleware = Any
 
+    # LangGraph types
+    try:
+        from langgraph.checkpoint.base import Checkpointer
+    except ImportError:
+        Checkpointer = Any
+
+    try:
+        from langgraph.store.base import BaseStore
+    except ImportError:
+        BaseStore = Any
+
 # Type alias
 LLMType = Union["BaseChatModel", str, None]
 MiddlewareType = Any
@@ -50,6 +62,8 @@ class AgentConfig:
         tools: 工具列表 (可选)
         model: 模型名称，覆盖 llm 中的模型 (可选)
         extra: 额外配置参数 (可选)
+        checkpointer: LangGraph checkpointer (可选)
+        store: LangGraph store (可选)
     
     Example:
         # 使用 LLM 实例
@@ -81,6 +95,8 @@ class AgentConfig:
     tools: ToolsType = field(default_factory=list)
     model: Optional[str] = None
     extra: Dict[str, Any] = field(default_factory=dict)
+    checkpointer: Optional["Checkpointer"] = None
+    store: Optional["BaseStore"] = None
     
     def __post_init__(self) -> None:
         """验证配置参数"""
@@ -180,7 +196,9 @@ class AgentConfig:
             middleware=self.middleware.copy(),
             tools=self.tools.copy(),
             model=self.model,
-            extra=self.extra.copy()
+            extra=self.extra.copy(),
+            checkpointer=self.checkpointer,
+            store=self.store,
         )
     
     def with_system_prompt(self, system_prompt: str) -> "AgentConfig":
@@ -192,7 +210,9 @@ class AgentConfig:
             middleware=self.middleware.copy(),
             tools=self.tools.copy(),
             model=self.model,
-            extra=self.extra.copy()
+            extra=self.extra.copy(),
+            checkpointer=self.checkpointer,
+            store=self.store,
         )
     
     def with_backend(self, backend: BackendType) -> "AgentConfig":
@@ -204,7 +224,9 @@ class AgentConfig:
             middleware=self.middleware.copy(),
             tools=self.tools.copy(),
             model=self.model,
-            extra=self.extra.copy()
+            extra=self.extra.copy(),
+            checkpointer=self.checkpointer,
+            store=self.store,
         )
     
     def with_middleware(self, middleware: List[MiddlewareType]) -> "AgentConfig":
@@ -216,7 +238,9 @@ class AgentConfig:
             middleware=middleware,
             tools=self.tools.copy(),
             model=self.model,
-            extra=self.extra.copy()
+            extra=self.extra.copy(),
+            checkpointer=self.checkpointer,
+            store=self.store,
         )
     
     def with_tools(self, tools: ToolsType) -> "AgentConfig":
@@ -228,7 +252,9 @@ class AgentConfig:
             middleware=self.middleware.copy(),
             tools=tools,
             model=self.model,
-            extra=self.extra.copy()
+            extra=self.extra.copy(),
+            checkpointer=self.checkpointer,
+            store=self.store,
         )
     
     def with_model(self, model: str) -> "AgentConfig":
@@ -240,18 +266,37 @@ class AgentConfig:
             middleware=self.middleware.copy(),
             tools=self.tools.copy(),
             model=model,
-            extra=self.extra.copy()
+            extra=self.extra.copy(),
+            checkpointer=self.checkpointer,
+            store=self.store,
         )
-
-        """创建新的配置，替换工具列表"""
+    
+    def with_checkpointer(self, checkpointer: Optional["Checkpointer"]) -> "AgentConfig":
+        """创建新的配置，替换 checkpointer"""
         return AgentConfig(
             llm=self.llm,
             system_prompt=self.system_prompt,
             backend=self.backend,
             middleware=self.middleware.copy(),
-            tools=tools,
+            tools=self.tools.copy(),
             model=self.model,
-            extra=self.extra.copy()
+            extra=self.extra.copy(),
+            checkpointer=checkpointer,
+            store=self.store,
+        )
+    
+    def with_store(self, store: Optional["BaseStore"]) -> "AgentConfig":
+        """创建新的配置，替换 store"""
+        return AgentConfig(
+            llm=self.llm,
+            system_prompt=self.system_prompt,
+            backend=self.backend,
+            middleware=self.middleware.copy(),
+            tools=self.tools.copy(),
+            model=self.model,
+            extra=self.extra.copy(),
+            checkpointer=self.checkpointer,
+            store=store,
         )
     
     def merge(self, **kwargs: Any) -> "AgentConfig":
@@ -263,7 +308,9 @@ class AgentConfig:
             middleware=kwargs.get('middleware', self.middleware.copy()),
             tools=kwargs.get('tools', self.tools.copy()),
             model=kwargs.get('model', self.model),
-            extra={**self.extra, **kwargs.get('extra', {})}
+            extra={**self.extra, **kwargs.get('extra', {})},
+            checkpointer=kwargs.get('checkpointer', self.checkpointer),
+            store=kwargs.get('store', self.store),
         )
     
     def to_dict(self) -> Dict[str, Any]:
@@ -276,6 +323,8 @@ class AgentConfig:
             'tools': self.tools,
             'model': self.model,
             'extra': self.extra,
+            'checkpointer': self.checkpointer,
+            'store': self.store,
         }
     
     @classmethod
@@ -289,6 +338,8 @@ class AgentConfig:
             tools=data.get('tools', []),
             model=data.get('model'),
             extra=data.get('extra', {}),
+            checkpointer=data.get('checkpointer'),
+            store=data.get('store'),
         )
     
     @classmethod
@@ -311,6 +362,8 @@ class AgentConfig:
             tools=kwargs.get('tools', []),
             model=kwargs.get('model'),
             extra=kwargs.get('extra', {}),
+            checkpointer=kwargs.get('checkpointer'),
+            store=kwargs.get('store'),
         )
 
 

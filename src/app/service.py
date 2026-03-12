@@ -3,10 +3,10 @@
 import asyncio
 import signal
 import sys
-from typing import Any, AsyncGenerator, Callable, Optional
+from typing import Any, Callable, Optional
 
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage
 
 from src.app.config import Config
 from src.agents import get_agent as get_agent_func
@@ -36,8 +36,6 @@ def extract_stream_text(token) -> str:
     elif hasattr(token, 'text') and token.text:
         return str(token.text)
     return ''
-
-
 
 
 class Service:
@@ -71,23 +69,41 @@ class Service:
         service_cfg = config.service_config
         self._timeout: float = service_cfg.get("timeout", 60.0)
         
+        # 初始化内存管理器
+        self._memory_manager = self._init_memory_manager()
+        
         # 设置信号处理
         self._setup_signal_handlers()
+    
+    def _init_memory_manager(self) -> Optional[Any]:
+        """初始化内存管理器
+        
+        Returns:
+            内存管理器实例
+        """
+        # 默认返回 None，如果没有配置内存管理器
+        # 可以根据需要扩展为实际的内存管理器
+        return None
     
     def _setup_signal_handlers(self) -> None:
         """设置系统信号处理器"""
         if sys.platform != "win32":
             # Unix-like 系统
-            loop = asyncio.get_event_loop()
-            for sig in (signal.SIGINT, signal.SIGTERM):
-                try:
-                    loop.add_signal_handler(
-                        sig,
-                        lambda s=sig: asyncio.create_task(self._handle_signal(s))
-                    )
-                except NotImplementedError:
-                    # 某些平台不支持 add_signal_handler
-                    pass
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = None
+            
+            if loop:
+                for sig in (signal.SIGINT, signal.SIGTERM):
+                    try:
+                        loop.add_signal_handler(
+                            sig,
+                            lambda s=sig: asyncio.create_task(self._handle_signal(s))
+                        )
+                    except NotImplementedError:
+                        # 某些平台不支持 add_signal_handler
+                        pass
     
     async def _handle_signal(self, sig: signal.Signals) -> None:
         """处理系统信号
@@ -186,25 +202,30 @@ class Service:
         try:
             async with asyncio.timeout(timeout):
                 if isinstance(input_data, str):
+                    # 添加用户消息到长期记忆
+                    if self._memory_manager is not None:
+                        await self._memory_manager.add_message("user", input_data)  # type: ignore[union-attr]
+                    
+                    # 构建完整的消息列表（历史消息 + 当前输入）
+                    all_messages = self._build_messages_with_history()
+                    all_messages.append(HumanMessage(content=input_data))
                     result = await self._agent.ainvoke(
                         {
-                            "messages": [
-                                HumanMessage(content=input_data)
-                            ]
+                            "messages": all_messages
                         }
                     )
-                    # 提取文本内容
-                    if hasattr(result, 'content'):
-                        return result.content
-                    return str(result)
+                else:
+                    # 如果是 dict 格式，使用 agent
+                    result = await self._agent.ainvoke(
+                        {
+                            "messages": input_data
+                        }
+                    )
                 
-                # 如果是 dict 格式，使用 agent
-                result = await self._agent.ainvoke(
-                    {
-                        "messages": input_data
-                    }
-                )
-                return result
+                # 提取文本内容
+                if hasattr(result, 'content'):
+                    return result.content
+                return str(result)
         except asyncio.TimeoutError:
             print(f"请求处理超时（{timeout}秒）")
             raise
@@ -241,7 +262,13 @@ class Service:
         try:
             async with asyncio.timeout(timeout):
                 if isinstance(input_data, str):
-                    messages = [HumanMessage(content=input_data)]
+                    # 添加用户消息到长期记忆
+                    if self._memory_manager is not None:
+                        await self._memory_manager.add_message("user", input_data)  # type: ignore[union-attr]
+                    
+                    # 构建完整的消息列表（历史消息 + 当前输入）
+                    messages = self._build_messages_with_history()
+                    messages.append(HumanMessage(content=input_data))
                 else:
                     messages = input_data
                 
@@ -269,8 +296,6 @@ class Service:
             raise
         except Exception as e:
             print(f"LLM 流式处理错误: {e}")
-            raise
-            print(f"LLM 处理错误: {e}")
             raise
     
     async def stop(self) -> None:
@@ -318,6 +343,26 @@ class Service:
         阻塞直到收到关闭信号或手动调用 stop()。
         """
         await self._shutdown_event.wait()
+    
+    def _build_messages_with_history(self) -> list[Any]:
+        """构建包含历史消息的消息列表
+        
+        从长期记忆中获取历史消息，并转换为 LangChain 消息格式。
+        
+        Returns:
+            消息列表（AIMessage 和 HumanMessage）
+        """
+        all_messages: list[Any] = []
+        
+        if self._memory_manager is not None:
+            history_messages = self._memory_manager.get_messages()  # type: ignore[union-attr]
+            for msg in history_messages:
+                if msg.role == "user":
+                    all_messages.append(HumanMessage(content=msg.content))
+                elif msg.role == "assistant":
+                    all_messages.append(AIMessage(content=msg.content))
+        
+        return all_messages
     
     def get_shutdown_signal(self) -> signal.Signals | None:
         """获取收到的关闭信号
