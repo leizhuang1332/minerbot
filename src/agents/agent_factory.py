@@ -397,53 +397,7 @@ def get_factory() -> AgentFactory:
 
 # 便捷函数
 
-def create_agent(
-    llm: LLMType = None,
-    system_prompt: str = "你是一个助手",
-    *,
-    backend: Any = None,
-    middleware: Optional[List[Any]] = None,
-    tools: Optional[List[Any]] = None,
-    model: Optional[str] = None,
-    **kwargs: Any
-) -> AgentType:
 
-    print(f"创建新的 Agent 实例create_agent: llm={llm}, system_prompt={system_prompt}")
-
-    """创建新的 Agent 实例
-    
-    这是一个便捷函数，每次调用都会创建新的 Agent 实例。
-    
-    Args:
-        llm: LLM 实例或 provider 名称
-        system_prompt: 系统提示词
-        backend: 后端存储 (可选)
-        middleware: 中间件列表 (可选)
-        tools: 工具列表 (可选)
-        model: 模型名称 (可选)
-        **kwargs: 额外参数
-        
-    Returns:
-        新的 Agent 实例
-        
-    Example:
-        # 使用 provider 名称
-        agent = create_agent("minimax", "你是一个助手")
-        
-        # 使用 LLM 实例
-        from src.llms import get_llm
-        agent = create_agent(get_llm(), "你是一个助手")
-    """
-    factory = get_factory()
-    return factory.create_agent(
-        llm=llm,
-        system_prompt=system_prompt,
-        backend=backend,
-        middleware=middleware,
-        tools=tools,
-        model=model,
-        **kwargs
-    )
 
 
 def get_agent(
