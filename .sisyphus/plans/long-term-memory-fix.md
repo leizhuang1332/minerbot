@@ -91,7 +91,7 @@
 
 ## TODOs
 
-- [ ] 1. 修复 `_init_memory_manager()` 方法
+- [x] 1. 修复 `_init_memory_manager()` 方法
 
   **需要做**：
   - 修改 `src/app/service.py:78-86` 中的 `_init_memory_manager()` 方法
@@ -130,7 +130,7 @@
     预期结果：`type: <class 'src.memory.manager.MemoryManager'>` 和 `is None: False`
     证据：`.sisyphus/evidence/task-1-verify.md`
 
-- [ ] 2. 修改 `start()` 方法
+- [x] 2. 修改 `start()` 方法
 
   **需要做**：
   - 在 `src/app/service.py` 的 `start()` 方法中（145-181行）
@@ -183,7 +183,7 @@ asyncio.run(test())
     预期结果：`background_task running: True`
     证据：`.sisyphus/evidence/task-2-verify.md`
 
-- [ ] 3. 修改 `stop()` 方法
+- [x] 3. 修改 `stop()` 方法
 
   **需要做**：
   - 在 `src/app/service.py` 的 `stop()` 方法中（302-317行）
@@ -243,7 +243,7 @@ asyncio.run(test())
     预期结果：生成文件且包含"测试消息"
     证据：`.sisyphus/evidence/task-3-verify.md`
 
-- [ ] 4. 验证长期记忆功能
+- [x] 4. 验证长期记忆功能
 
   **需要做**：
   - 运行现有单元测试确保没有破坏
@@ -313,7 +313,8 @@ asyncio.run(test())
 
 ## 最终验证
 
-- [ ] F1. 单元测试全部通过：`uv run pytest tests/test_long_term_memory.py -v`
+- [x] F1. 单元测试全部通过：`uv run pytest tests/test_long_term_memory.py -v`
+- [x] F2. 功能验证通过：长期记忆写入和读取正常工作
 - [ ] F2. 功能验证通过：长期记忆写入和读取正常工作
 
 ---
@@ -341,7 +342,12 @@ uv run pytest tests/test_long_term_memory.py -v
 ```
 
 ### 最终检查清单
-- [ ] `_init_memory_manager()` 返回正确的 MemoryManager 实例
+- [x] `_init_memory_manager()` 返回正确的 MemoryManager 实例
+- [x] `start()` 方法启动 MemoryManager 后台任务
+- [x] `start()` 方法加载历史对话
+- [x] `stop()` 方法停止 MemoryManager 并保存数据
+- [x] 所有单元测试通过
+- [x] 长期记忆功能正常工作
 - [ ] `start()` 方法启动 MemoryManager 后台任务
 - [ ] `start()` 方法加载历史对话
 - [ ] `stop()` 方法停止 MemoryManager 并保存数据
