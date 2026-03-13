@@ -144,6 +144,7 @@ class AgentFactory:
         return llm
     
     def _create_agent_instance(self, config: AgentConfig) -> AgentType:
+        print(f"创建 Agent 实例_create_agent_instance: {config}")
         """创建 Agent 实例
         
         使用 DeepAgents SDK 创建 Agent。
@@ -445,6 +446,9 @@ def create_agent(
     model: Optional[str] = None,
     **kwargs: Any
 ) -> AgentType:
+
+    print(f"创建新的 Agent 实例create_agent: llm={llm}, system_prompt={system_prompt}")
+
     """创建新的 Agent 实例
     
     这是一个便捷函数，每次调用都会创建新的 Agent 实例。
