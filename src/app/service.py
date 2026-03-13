@@ -7,6 +7,7 @@ from typing import Any, Callable, Optional
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, HumanMessage
+from src.memory.manager import MemoryManager
 
 from src.app.config import Config
 from src.agents import get_agent as get_agent_func
@@ -75,15 +76,23 @@ class Service:
         # 设置信号处理
         self._setup_signal_handlers()
     
-    def _init_memory_manager(self) -> Optional[Any]:
+    def _init_memory_manager(self) -> "MemoryManager | None":
         """初始化内存管理器
         
         Returns:
             内存管理器实例
         """
-        # 默认返回 None，如果没有配置内存管理器
-        # 可以根据需要扩展为实际的内存管理器
-        return None
+        memory_config = self._config.service_config.get("memory", {})
+        memory_dir = memory_config.get("memory_dir", "memory")
+        batch_size = memory_config.get("batch_size", 10)
+        flush_interval = memory_config.get("flush_interval", 30.0)
+        
+        return MemoryManager(
+            memory_dir=memory_dir,
+            batch_size=batch_size,
+            flush_interval=flush_interval
+        )
+
     
     def _setup_signal_handlers(self) -> None:
         """设置系统信号处理器"""
@@ -169,6 +178,12 @@ class Service:
                 system_prompt=agent_config.get("system_prompt", "你是一个助手"),
             )
             print(f"Agent 初始化完成: {type(self._agent).__name__}")
+
+            # 启动 MemoryManager 后台任务
+            if self._memory_manager is not None:
+                await self._memory_manager.start()
+                self._memory_manager.load_conversation("default")
+                print("MemoryManager 已启动并加载历史对话")
             
             self._running = True
             self._shutdown_event.clear()
@@ -309,6 +324,11 @@ class Service:
         
         print("正在停止服务...")
         
+        # 停止 MemoryManager 并保存数据
+        if self._memory_manager is not None:
+            await self._memory_manager.stop()
+            print("MemoryManager 已停止并保存数据")
+
         try:
             await self._cleanup_resources()
         finally:
