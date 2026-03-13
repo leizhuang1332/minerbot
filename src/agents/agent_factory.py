@@ -96,10 +96,7 @@ class AgentFactory:
             self._local_cache: Dict[str, AgentType] = {}
             AgentFactory._initialized = True
     
-    @property
-    def cache_size(self) -> int:
-        """返回全局缓存大小"""
-        return len(AgentFactory._global_cache)
+
     
     def _resolve_llm(self, llm: LLMType) -> "BaseChatModel":
         """解析 LLM 参数
@@ -379,47 +376,11 @@ class AgentFactory:
             **kwargs
         )
     
-    def clear_cache(self, global_cache: bool = True) -> int:
-        """清除缓存
-        
-        Args:
-            global_cache: 是否清除全局缓存 (默认 True)
-            
-        Returns:
-            清除的缓存项数量
-        """
-        count = 0
-        
-        # 清除本地缓存
-        if hasattr(self, '_local_cache'):
-            count += len(self._local_cache)
-            self._local_cache.clear()
-        
-        # 清除全局缓存
-        if global_cache:
-            count += len(AgentFactory._global_cache)
-            AgentFactory._global_cache.clear()
-        
-        return count
+
     
-    def get_cached_agents(self) -> Dict[str, AgentType]:
-        """获取所有缓存的 Agent 实例
-        
-        Returns:
-            缓存的 Agent 实例字典 (哈希 -> 实例)
-        """
-        return AgentFactory._global_cache.copy()
+
     
-    def has_agent(self, config: AgentConfig) -> bool:
-        """检查配置是否有缓存的 Agent
-        
-        Args:
-            config: AgentConfig 对象
-            
-        Returns:
-            是否有缓存
-        """
-        return config.to_hash() in AgentFactory._global_cache
+
 
 
 # 全局工厂实例
