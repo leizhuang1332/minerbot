@@ -2,6 +2,7 @@
 from rich.console import Console
 from rich.panel import Panel
 from rich.markdown import Markdown
+from rich.style import Style
 
 
 class TerminalUI:
@@ -25,24 +26,6 @@ class TerminalUI:
         """
         self.console.print(Markdown(welcome))
     
-    def print_response(self, response):
-        # 处理 MiniMax 返回的结构化响应
-        if isinstance(response, list):
-            text_parts = []
-            for item in response:
-                if isinstance(item, dict):
-                    if item.get('type') == 'text':
-                        text_parts.append(item.get('text', ''))
-                    elif item.get('type') == 'thinking':
-                        # 可选：处理 thinking
-                        pass
-            response = '\n'.join(text_parts)
-        
-        if not response:
-            response = "(无回复)"
-        
-        self.console.print(Panel(response, title="AI 回复", border_style="blue"))
-    
     def run(self):
         self.print_welcome()
         
@@ -64,25 +47,23 @@ class TerminalUI:
                 
                 self.console.print("\n[bold blue]AI:[/bold blue] ", end="")
                 full_response = []
+                thinking_buffer = []
                 for event in self.agent.stream(
                     {"messages": [("user", user_input)]},
                     config=self.config,
                 ):
-                    self.console.print(event)
-                    if "messages" in event:
-                        last_msg = event["messages"][-1]
-                        if hasattr(last_msg, 'content'):
-                            content = last_msg.content
-                            if isinstance(content, list):
-                                for item in content:
-                                    if isinstance(item, dict):
-                                        if item.get('type') == 'text':
-                                            text = item.get('text', '')
-                                            self.console.print(text, end="")
-                                            full_response.append(text)
-                            elif isinstance(content, str):
-                                self.console.print(content, end="")
-                                full_response.append(content)
+                    pass
+                
+                # 流式输出完成后，如果有待输出的 thinking 内容，用 Panel 显示
+                if thinking_buffer:
+                    self.console.print()
+                    thinking_text = '\n'.join(thinking_buffer)
+                    self.console.print(Panel(
+                        thinking_text,
+                        title="🤔 Thinking",
+                        border_style="dim",
+                        style=Style(color="cyan")
+                    ))
                 
                 self.console.print()
                 
