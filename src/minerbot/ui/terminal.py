@@ -25,7 +25,22 @@ class TerminalUI:
         """
         self.console.print(Markdown(welcome))
     
-    def print_response(self, response: str):
+    def print_response(self, response):
+        # 处理 MiniMax 返回的结构化响应
+        if isinstance(response, list):
+            text_parts = []
+            for item in response:
+                if isinstance(item, dict):
+                    if item.get('type') == 'text':
+                        text_parts.append(item.get('text', ''))
+                    elif item.get('type') == 'thinking':
+                        # 可选：处理 thinking
+                        pass
+            response = '\n'.join(text_parts)
+        
+        if not response:
+            response = "(无回复)"
+        
         self.console.print(Panel(response, title="AI 回复", border_style="blue"))
     
     def run(self):
