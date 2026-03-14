@@ -62,13 +62,29 @@ class TerminalUI:
                     self.print_help()
                     continue
                 
-                result = self.agent.invoke(
+                self.console.print("\n[bold blue]AI:[/bold blue] ", end="")
+                full_response = []
+                for event in self.agent.stream(
                     {"messages": [("user", user_input)]},
                     config=self.config,
-                )
+                ):
+                    self.console.print(event)
+                    if "messages" in event:
+                        last_msg = event["messages"][-1]
+                        if hasattr(last_msg, 'content'):
+                            content = last_msg.content
+                            if isinstance(content, list):
+                                for item in content:
+                                    if isinstance(item, dict):
+                                        if item.get('type') == 'text':
+                                            text = item.get('text', '')
+                                            self.console.print(text, end="")
+                                            full_response.append(text)
+                            elif isinstance(content, str):
+                                self.console.print(content, end="")
+                                full_response.append(content)
                 
-                response = result["messages"][-1].content
-                self.print_response(response)
+                self.console.print()
                 
             except KeyboardInterrupt:
                 self.running = False
