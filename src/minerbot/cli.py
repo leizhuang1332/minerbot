@@ -21,8 +21,8 @@ def main(
     debug: bool = typer.Option(False, "--debug", "-d", help="调试模式"),
 ):
     """启动 MinerBot CLI"""
-    log_level = "DEBUG" if debug else "INFO"
-    setup_logging(log_level)
+    # log_level = "DEBUG" if debug else "INFO"
+    setup_logging("INFO")
     
     try:
         config = AppConfig.from_env()

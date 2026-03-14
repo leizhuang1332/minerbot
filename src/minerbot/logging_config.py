@@ -25,3 +25,5 @@ def setup_logging(log_level: str = "INFO", log_file: str | None = None) -> None:
         handlers=handlers,
         force=True,
     )
+    
+    logging.getLogger("markdown_it").setLevel(logging.WARNING)
