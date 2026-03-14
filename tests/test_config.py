@@ -21,7 +21,7 @@ def test_config_validation():
     """测试配置验证"""
     config = AppConfig(anthropic_api_key="")
     
-    with pytest.raises(ValueError, match="ANTHROPIC_API_KEY is required"):
+    with pytest.raises(ValueError, match="At least one of ANTHROPIC_API_KEY or MINIMAX_API_KEY is required"):
         config.validate()
 
 

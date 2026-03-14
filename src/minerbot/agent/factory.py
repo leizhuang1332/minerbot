@@ -1,4 +1,5 @@
 """Agent 工厂函数"""
+import logging
 from typing import TYPE_CHECKING
 
 from deepagents import create_deep_agent
@@ -28,12 +29,34 @@ def create_agent(
         
     Returns:
         配置好的 Deep Agent
+        
+    Raises:
+        AgentError: 当模型初始化失败时
     """
-    model = ChatAnthropic(
-        model_name=config.model_name,
-        temperature=config.temperature,
-        max_tokens=config.max_tokens,
-    )
+    logger = logging.getLogger(__name__)
+    
+    # 根据是否配置 MiniMax API Key 决定使用哪个模型
+    try:
+        if config.minimax_api_key:
+            logger.info(f"使用 MiniMax 模型: {config.minimax_model}")
+            model = ChatAnthropic(
+                model_name=config.minimax_model,
+                base_url=config.minimax_base_url,
+                api_key=config.minimax_api_key,
+                temperature=config.temperature,
+                max_tokens=config.max_tokens,
+            )
+        else:
+            logger.info(f"使用 Anthropic 模型: {config.model_name}")
+            model = ChatAnthropic(
+                model_name=config.model_name,
+                temperature=config.temperature,
+                max_tokens=config.max_tokens,
+            )
+    except Exception as e:
+        logger.error(f"模型初始化失败: {e}")
+        from ..exceptions import AgentError
+        raise AgentError(f"模型初始化失败: {e}") from e
     
     all_tools = []
     if config.tavily_api_key:

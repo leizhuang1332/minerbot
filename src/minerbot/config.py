@@ -1,6 +1,5 @@
 """配置管理模块"""
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Optional
 import os
 from dotenv import load_dotenv
@@ -14,6 +13,10 @@ class AppConfig:
     temperature: float = 0.7
     max_tokens: int = 4096
     sqlite_db_path: str = "data/minerbot.db"
+    minimax_api_key: Optional[str] = None
+    minimax_base_url: str = "https://api.minimaxi.com/anthropic"
+    minimax_model: str = "MiniMax-M2.5"
+    model_provider: Optional[str] = None
     
     @classmethod
     def from_env(cls) -> "AppConfig":
@@ -26,9 +29,13 @@ class AppConfig:
             temperature=float(os.getenv("TEMPERATURE", "0.7")),
             max_tokens=int(os.getenv("MAX_TOKENS", "4096")),
             sqlite_db_path=os.getenv("SQLITE_DB_PATH", "data/minerbot.db"),
+            minimax_api_key=os.getenv("MINIMAX_API_KEY"),
+            minimax_base_url=os.getenv("MINIMAX_BASE_URL", "https://api.minimaxi.com/anthropic"),
+            minimax_model=os.getenv("MINIMAX_MODEL", "MiniMax-M2.5"),
+            model_provider=os.getenv("MODEL_PROVIDER"),
         )
     
     def validate(self) -> None:
         """验证配置有效性"""
-        if not self.anthropic_api_key:
-            raise ValueError("ANTHROPIC_API_KEY is required")
+        if not self.anthropic_api_key and not self.minimax_api_key:
+            raise ValueError("At least one of ANTHROPIC_API_KEY or MINIMAX_API_KEY is required")

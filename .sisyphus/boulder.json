@@ -1,9 +1,10 @@
 {
-  "active_plan": "/Users/Ray/Documents/trae_projects/minerbot/.sisyphus/plans/minerbot-cli-development.md",
-  "started_at": "2026-03-14T14:08:45.949Z",
+  "active_plan": "/Users/Ray/Documents/trae_projects/minerbot/.sisyphus/plans/minimax-support.md",
+  "started_at": "2026-03-14T15:16:58.199Z",
   "session_ids": [
-    "ses_3136dcd2dffefHck9KWrGnR0vL"
+    "ses_31313f538ffe7M4ftly7NmQqIF"
   ],
-  "plan_name": "minerbot-cli-development",
-  "agent": "atlas"
+  "plan_name": "minimax-support",
+  "agent": "atlas",
+  "worktree_path": "/Users/Ray/Documents/trae_projects/minerbot"
 }
