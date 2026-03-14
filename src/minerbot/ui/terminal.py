@@ -4,6 +4,8 @@ from rich.panel import Panel
 from rich.markdown import Markdown
 from rich.style import Style
 
+from langchain_core.messages import AIMessage, ToolMessage
+
 
 class TerminalUI:
     """终端交互界面"""
@@ -48,11 +50,49 @@ class TerminalUI:
                 self.console.print("\n[bold blue]AI:[/bold blue] ", end="")
                 full_response = []
                 thinking_buffer = []
+                
                 for event in self.agent.stream(
                     {"messages": [("user", user_input)]},
                     config=self.config,
                 ):
-                    pass
+                    
+                    for _, node_output in event.items():
+                        
+                        if not isinstance(node_output, dict):
+                            continue
+                        
+                        messages = node_output.get("messages")
+                        if not isinstance(messages, list):
+                            continue
+                            
+                        for msg in messages:
+                            if isinstance(msg, AIMessage):
+                                content = msg.content
+                                if content:
+                                    for char in content:
+                                        if "thinking" in char:
+                                            self.console.print(Panel(
+                                                char["thinking"],
+                                                title="🤔 Thinking",
+                                                border_style="dim",
+                                                style=Style(color="cyan")
+                                            ))
+                                        if "text" in char:
+                                            full_response.append(char["text"])
+                                            self.console.print(char["text"], end="")
+                            
+                            elif isinstance(msg, ToolMessage):
+                                tool_name = msg.name or msg.tool_call_id or "tool"
+                                content = msg.content
+                                if content:
+                                    self.console.print()
+                                    self.console.print(Panel(
+                                        f"[Tool: {tool_name}]\n{content}",
+                                        title="🔧 Tool Result",
+                                        border_style="green",
+                                        style=Style(color="green")
+                                    ))
+                                    self.console.print("\n[bold blue]AI:[/bold blue] ", end="")
                 
                 # 流式输出完成后，如果有待输出的 thinking 内容，用 Panel 显示
                 if thinking_buffer:

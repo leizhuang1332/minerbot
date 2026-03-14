@@ -1,10 +1,12 @@
 {
-  "active_plan": "/Users/Ray/Documents/trae_projects/minerbot/.sisyphus/plans/minimax-support.md",
-  "started_at": "2026-03-14T15:16:58.199Z",
+  "active_plan": "/Users/Ray/Documents/trae_projects/minerbot/.sisyphus/plans/terminal-stream-tui.md",
+  "started_at": "2026-03-15T00:35:13.668Z",
+  "completed_at": "2026-03-15T00:40:00.000Z",
   "session_ids": [
-    "ses_31313f538ffe7M4ftly7NmQqIF"
+    "ses_312d12706ffecLr0rKCJm1ISQD"
   ],
-  "plan_name": "minimax-support",
+  "plan_name": "terminal-stream-tui",
   "agent": "atlas",
-  "worktree_path": "/Users/Ray/Documents/trae_projects/minerbot"
+  "worktree_path": "/Users/Ray/Documents/trae_projects/minerbot",
+  "status": "completed"
 }
