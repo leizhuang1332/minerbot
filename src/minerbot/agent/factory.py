@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from deepagents import create_deep_agent
 from langchain_anthropic import ChatAnthropic
-from langgraph.store.memory import InMemoryStore
+from langgraph.store.sqlite.aio import AsyncSqliteStore
 
 from ..config import AppConfig
 from ..tools.search import create_search_tool
@@ -13,12 +13,14 @@ from .session import SessionManager
 if TYPE_CHECKING:
     from langchain_core.tools import BaseTool
     from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
+    from langgraph.store.sqlite.aio import AsyncSqliteStore
 
 
 def create_agent(
     config: AppConfig,
     tools: list["BaseTool"] | None = None,
     checkpointer: "AsyncSqliteSaver | None" = None,
+    store: "AsyncSqliteStore | None" = None,
 ):
     """创建 Deep Agent 实例
     
@@ -68,7 +70,7 @@ def create_agent(
         model=model,
         tools=all_tools if all_tools else None,
         checkpointer=checkpointer,
-        store=InMemoryStore(),
+        store=store,
         name="MinerBot",
     )
 
@@ -83,5 +85,5 @@ async def create_agent_with_session(config: AppConfig):
         (agent, session_manager) 元组
     """
     session_mgr = await SessionManager.create(config)
-    agent = create_agent(config, checkpointer=session_mgr.checkpointer)
+    agent = create_agent(config, checkpointer=session_mgr.checkpointer, store=session_mgr.store)
     return agent, session_mgr

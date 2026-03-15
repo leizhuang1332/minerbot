@@ -4,6 +4,7 @@ from pathlib import Path
 from dataclasses import dataclass, field
 
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
+from langgraph.store.sqlite.aio import AsyncSqliteStore
 
 from ..config import AppConfig
 
@@ -12,29 +13,26 @@ from ..config import AppConfig
 class SessionManager:
     """会话管理器"""
     checkpointer: AsyncSqliteSaver = field(repr=False)
+    store: AsyncSqliteStore = field(repr=False)
     _conn: aiosqlite.Connection = field(repr=False)
     
     @classmethod
     async def create(cls, config: AppConfig) -> "SessionManager":
-        """创建会话管理器
-        
-        Args:
-            config: 应用配置
-            
-        Returns:
-            SessionManager 实例
-        """
         db_path = Path(config.sqlite_db_path)
         db_path.parent.mkdir(parents=True, exist_ok=True)
         
-        conn = await aiosqlite.connect(str(db_path))
+        conn = await aiosqlite.connect(str(db_path), isolation_level=None)
         checkpointer = AsyncSqliteSaver(conn)
         
-        return cls(checkpointer=checkpointer, _conn=conn)
+        store_conn = await aiosqlite.connect(str(db_path), isolation_level=None)
+        store = AsyncSqliteStore(store_conn)
+        await store.setup()
+        
+        return cls(checkpointer=checkpointer, store=store, _conn=conn)
     
     async def close(self):
-        """关闭连接"""
         await self._conn.close()
+        await self.store.conn.close()
     
     def get_thread_config(self, thread_id: str, metadata: dict[str, object] | None = None):
         """获取线程配置

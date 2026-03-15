@@ -1,11 +1,11 @@
 {
-  "active_plan": "/Users/Ray/Documents/trae_projects/minerbot/.sisyphus/plans/terminal-stream-tui.md",
-  "started_at": "2026-03-15T00:35:13.668Z",
-  "completed_at": "2026-03-15T00:40:00.000Z",
+  "active_plan": "/Users/Ray/Documents/trae_projects/minerbot/.sisyphus/plans/agent-store-upgrade.md",
+  "started_at": "2026-03-15T06:05:00.000Z",
+  "completed_at": "2026-03-15T06:15:00.000Z",
   "session_ids": [
-    "ses_312d12706ffecLr0rKCJm1ISQD"
+    "ses_30fe8dee1ffelfRauVIb4ePVMY"
   ],
-  "plan_name": "terminal-stream-tui",
+  "plan_name": "agent-store-upgrade",
   "agent": "atlas",
   "worktree_path": "/Users/Ray/Documents/trae_projects/minerbot",
   "status": "completed"
