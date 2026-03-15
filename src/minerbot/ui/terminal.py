@@ -84,7 +84,7 @@ class TerminalUI:
         self,
         message: str,
     ) -> AsyncGenerator[dict[str, Any], None]:
-        config = RunnableConfig(configurable={"thread_id": "terminal-session"})
+        config = RunnableConfig(configurable=self.config["configurable"])
         
         async for event in self.agent.astream(
             {"messages": [("user", message)]},

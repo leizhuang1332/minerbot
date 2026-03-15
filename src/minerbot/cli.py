@@ -31,7 +31,7 @@ def main(
         agent, session_mgr = await create_agent_with_session(config)
         
         thread_config = session_mgr.get_thread_config(
-            session_id or "default"
+            session_id or str(uuid.uuid4())
         )
         
         ui = TerminalUI(agent, thread_config, console)
