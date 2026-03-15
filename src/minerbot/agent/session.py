@@ -1,9 +1,9 @@
 """会话管理器"""
-import sqlite3
+import aiosqlite
 from pathlib import Path
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
-from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 from ..config import AppConfig
 
@@ -11,10 +11,11 @@ from ..config import AppConfig
 @dataclass
 class SessionManager:
     """会话管理器"""
-    checkpointer: SqliteSaver
+    checkpointer: AsyncSqliteSaver = field(repr=False)
+    _conn: aiosqlite.Connection = field(repr=False)
     
     @classmethod
-    def create(cls, config: AppConfig) -> "SessionManager":
+    async def create(cls, config: AppConfig) -> "SessionManager":
         """创建会话管理器
         
         Args:
@@ -26,16 +27,16 @@ class SessionManager:
         db_path = Path(config.sqlite_db_path)
         db_path.parent.mkdir(parents=True, exist_ok=True)
         
-        conn = sqlite3.connect(
-            str(db_path),
-            check_same_thread=False,
-        )
+        conn = await aiosqlite.connect(str(db_path))
+        checkpointer = AsyncSqliteSaver(conn)
         
-        checkpointer = SqliteSaver(conn)
-        
-        return cls(checkpointer=checkpointer)
+        return cls(checkpointer=checkpointer, _conn=conn)
     
-    def get_thread_config(self, thread_id: str, metadata: dict | None = None):
+    async def close(self):
+        """关闭连接"""
+        await self._conn.close()
+    
+    def get_thread_config(self, thread_id: str, metadata: dict[str, object] | None = None):
         """获取线程配置
         
         Args:

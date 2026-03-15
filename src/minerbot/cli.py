@@ -1,4 +1,5 @@
 """CLI 入口"""
+import asyncio
 import sys
 from typing import Optional
 
@@ -21,21 +22,26 @@ def main(
     debug: bool = typer.Option(False, "--debug", "-d", help="调试模式"),
 ):
     """启动 MinerBot CLI"""
-    # log_level = "DEBUG" if debug else "INFO"
     setup_logging("INFO")
     
-    try:
+    async def run_app():
         config = AppConfig.from_env()
         config.validate()
         
-        agent, session_mgr = create_agent_with_session(config)
+        agent, session_mgr = await create_agent_with_session(config)
         
         thread_config = session_mgr.get_thread_config(
             session_id or "default"
         )
         
         ui = TerminalUI(agent, thread_config, console)
-        ui.run()
+        try:
+            await ui.run()
+        finally:
+            await session_mgr.close()
+    
+    try:
+        asyncio.run(run_app())
         
     except MinerBotError as e:
         console.print(f"[red]错误:[/red] {e}")

@@ -1,10 +1,12 @@
 """交互式终端 UI"""
+from typing import AsyncGenerator, Any
+
 from rich.console import Console
 from rich.panel import Panel
 from rich.markdown import Markdown
-from rich.style import Style
 
-from langchain_core.messages import AIMessage, ToolMessage
+from langchain_core.messages import AIMessage
+from langchain_core.runnables.config import RunnableConfig
 
 
 class TerminalUI:
@@ -28,7 +30,7 @@ class TerminalUI:
         """
         self.console.print(Markdown(welcome))
     
-    def run(self):
+    async def run(self):
         self.print_welcome()
         
         while self.running:
@@ -51,61 +53,19 @@ class TerminalUI:
                 full_response = []
                 thinking_buffer = []
                 
-                for event in self.agent.stream(
-                    {"messages": [("user", user_input)]},
-                    config=self.config,
-                ):
-                    
-                    for _, node_output in event.items():
-                        
-                        if not isinstance(node_output, dict):
-                            continue
-                        
-                        messages = node_output.get("messages")
-                        if not isinstance(messages, list):
-                            continue
-                            
-                        for msg in messages:
-                            if isinstance(msg, AIMessage):
-                                content = msg.content
-                                if content:
-                                    for char in content:
-                                        if "thinking" in char:
-                                            self.console.print(Panel(
-                                                char["thinking"],
-                                                title="🤔 Thinking",
-                                                border_style="dim",
-                                                style=Style(color="cyan")
-                                            ))
-                                        if "text" in char:
-                                            full_response.append(char["text"])
-                                            self.console.print(char["text"], end="")
-                            
-                            elif isinstance(msg, ToolMessage):
-                                tool_name = msg.name or msg.tool_call_id or "tool"
-                                content = msg.content
-                                if content:
-                                    self.console.print()
-                                    self.console.print(Panel(
-                                        f"[Tool: {tool_name}]\n{content}",
-                                        title="🔧 Tool Result",
-                                        border_style="green",
-                                        style=Style(color="green")
-                                    ))
-                                    self.console.print("\n[bold blue]AI:[/bold blue] ", end="")
+                async for chunk in self.stream_with_thinking(user_input):
+                    if chunk["type"] == "thinking":
+                        thinking_buffer.append(chunk["content"])
+                        self.console.print(Panel(
+                            chunk["content"],
+                            title="🤔 Thinking",
+                            border_style="dim",
+                        ))
+                    elif chunk["type"] == "text":
+                        full_response.append(chunk["content"])
+                        print(chunk["content"], end="", flush=True)
                 
-                # 流式输出完成后，如果有待输出的 thinking 内容，用 Panel 显示
-                if thinking_buffer:
-                    self.console.print()
-                    thinking_text = '\n'.join(thinking_buffer)
-                    self.console.print(Panel(
-                        thinking_text,
-                        title="🤔 Thinking",
-                        border_style="dim",
-                        style=Style(color="cyan")
-                    ))
-                
-                self.console.print()
+                print()
                 
             except KeyboardInterrupt:
                 self.running = False
@@ -121,3 +81,35 @@ class TerminalUI:
 - `clear` - 清除屏幕
         """
         self.console.print(Markdown(help_text))
+
+    async def stream_with_thinking(
+        self,
+        message: str,
+    ) -> AsyncGenerator[dict[str, Any], None]:
+        config = RunnableConfig(configurable={"thread_id": "terminal-session"})
+        
+        async for event in self.agent.astream(
+            {"messages": [("user", message)]},
+            config=config,
+        ):
+            for node_name, node_output in event.items():
+                if not isinstance(node_output, dict):
+                    continue
+                
+                messages = node_output.get("messages")
+                if not isinstance(messages, list):
+                    continue
+                
+                for msg in messages:
+                    if isinstance(msg, AIMessage):
+                        content = msg.content
+                        
+                        if isinstance(content, str):
+                            yield {"type": "text", "content": content}
+                        elif isinstance(content, list):
+                            for item in content:
+                                if isinstance(item, dict):
+                                    if "thinking" in item:
+                                        yield {"type": "thinking", "content": item["thinking"]}
+                                    if "text" in item:
+                                        yield {"type": "text", "content": item["text"]}
