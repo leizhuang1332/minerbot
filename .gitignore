@@ -8,4 +8,4 @@ src/**/__pycache__/
 # macOS system files
 .DS_Store
 
-data/*.db*
+*.db*
