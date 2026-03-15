@@ -10,7 +10,7 @@ from langchain_anthropic import ChatAnthropic
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from langgraph.graph import StateGraph, MessagesState, START
 from langgraph.runtime import Runtime
-from langgraph.store.memory import InMemoryStore
+from langgraph.store.sqlite.aio import AsyncSqliteStore
 from langgraph.store.base import BaseStore
 
 
@@ -36,13 +36,15 @@ class MemoryMVP:
         self.checkpointer = AsyncSqliteSaver(conn)
         await self.checkpointer.setup()
         
-        self.store = InMemoryStore()
+        store_conn = await aiosqlite.connect(self.db_path)
+        self.store = AsyncSqliteStore(store_conn)
+        await self.store.setup()
         
         self.model = ChatAnthropic(model_name="claude-sonnet-4-20250514")
         
     async def create_graph(self):
         
-        def call_model(state: MessagesState, runtime: Runtime[Context]):
+        async def call_model(state: MessagesState, runtime: Runtime[Context]):
             user_id = runtime.context.user_id
             user_name = runtime.context.user_name
             
@@ -52,7 +54,7 @@ class MemoryMVP:
             memory_text = ""
             if runtime.store:
                 try:
-                    memories = runtime.store.search(namespace, limit=3)
+                    memories = await runtime.store.asearch(namespace, limit=3)
                     if memories:
                         memory_text = "\n".join([f"- {m.value.get('key', 'unknown')}: {m.value.get('value', '')}" 
                                                 for m in memories])
@@ -72,7 +74,7 @@ class MemoryMVP:
                 memory_key = "user_preference"
                 memory_value = last_msg
                 if runtime.store:
-                    runtime.store.put(namespace, memory_key, {
+                    await runtime.store.aput(namespace, memory_key, {
                         "value": memory_value,
                         "created_at": datetime.now().isoformat()
                     })
@@ -136,18 +138,18 @@ class MemoryMVP:
         namespace = (user_id, "profile")
         
         if self.store:
-            self.store.put(namespace, "name", {"value": "Alice", "type": "name"})
-            self.store.put(namespace, "favorite_color", {"value": "blue", "type": "preference"})
-            self.store.put(namespace, "hobby", {"value": "reading", "type": "interest"})
+            await self.store.aput(namespace, "name", {"value": "Alice", "type": "name"})
+            await self.store.aput(namespace, "favorite_color", {"value": "blue", "type": "preference"})
+            await self.store.aput(namespace, "hobby", {"value": "reading", "type": "interest"})
             
-            results = self.store.search(namespace)
+            results = await self.store.asearch(namespace)
             
-            item = self.store.get(namespace, "name")
+            item = await self.store.aget(namespace, "name")
             if item:
                 print(f"    name: {item.value}")
                 
-            self.store.delete(namespace, "hobby")
-            results = self.store.search(namespace)
+            await self.store.adelete(namespace, "hobby")
+            results = await self.store.asearch(namespace)
         
     async def test_thread_management(self):
         

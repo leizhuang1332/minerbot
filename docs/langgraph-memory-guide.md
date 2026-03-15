@@ -502,6 +502,30 @@ store = PostgresStore.from_conn_string(
 | conn_string | str | 是 | - | PostgreSQL 连接串 |
 | embedding | BaseEmbeddings | 否 | None | 语义搜索用嵌入模型 |
 
+#### SqliteStore / AsyncSqliteStore
+
+```python
+import aiosqlite
+from langgraph.store.sqlite import SqliteStore
+from langgraph.store.sqlite.aio import AsyncSqliteStore
+
+# 同步
+import sqlite3
+conn = sqlite3.connect("store.db")
+store = SqliteStore(conn)
+
+# 异步
+import aiosqlite
+conn = await aiosqlite.connect("store.db")
+store = AsyncSqliteStore(conn)
+await store.setup()
+```
+
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| conn | 数据库连接 | 是 | - | SQLite 连接对象 |
+| index | SqliteIndexConfig | 否 | None | 索引配置（用于向量搜索） |
+
 ### 7.3 Runtime 存储操作
 
 #### put - 存储数据
