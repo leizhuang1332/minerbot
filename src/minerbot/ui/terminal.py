@@ -50,7 +50,6 @@ class TerminalUI:
                     continue
                 
                 self.console.print("\n[bold blue]AI:[/bold blue] ", end="")
-                full_response = []
                 thinking_buffer = []
                 
                 async for chunk in self.stream_with_thinking(user_input):
@@ -62,7 +61,6 @@ class TerminalUI:
                             border_style="dim",
                         ))
                     elif chunk["type"] == "text":
-                        full_response.append(chunk["content"])
                         print(chunk["content"], end="", flush=True)
                 
                 print()
