@@ -1,0 +1,29 @@
+# T9 QA - 消息序列化
+## 日期: 2026-03-15
+## 结果: ✅ 通过
+
+执行命令:
+```
+uv run python -c "
+from minerbot.memory.utils import serialize_messages
+from langchain_core.messages import HumanMessage, AIMessage
+
+messages = [
+    HumanMessage(content='Hello'),
+    AIMessage(content='Hi there')
+]
+serialized = serialize_messages(messages)
+print(f'Serialized count: {len(serialized)}')
+print(f'First type: {serialized[0][\"type\"]}')
+print('Serialize messages OK')
+"
+```
+
+输出:
+```
+Serialized count: 2
+First type: human
+Serialize messages OK
+```
+
+验证: 序列化函数返回可 JSON 序列化的数据

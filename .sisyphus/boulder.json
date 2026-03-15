@@ -1,12 +1,9 @@
 {
-  "active_plan": "/Users/Ray/Documents/trae_projects/minerbot/.sisyphus/plans/agent-store-upgrade.md",
-  "started_at": "2026-03-15T06:05:00.000Z",
-  "completed_at": "2026-03-15T06:15:00.000Z",
+  "active_plan": "/Users/Ray/Documents/trae_projects/minerbot/.sisyphus/plans/long-term-memory.md",
+  "started_at": "2026-03-15T07:22:43.017Z",
   "session_ids": [
-    "ses_30fe8dee1ffelfRauVIb4ePVMY"
+    "ses_30f9fca4bffeKnsFQn1dEa7St9"
   ],
-  "plan_name": "agent-store-upgrade",
-  "agent": "atlas",
-  "worktree_path": "/Users/Ray/Documents/trae_projects/minerbot",
-  "status": "completed"
+  "plan_name": "long-term-memory",
+  "agent": "atlas"
 }

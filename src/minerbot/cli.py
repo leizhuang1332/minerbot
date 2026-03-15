@@ -2,6 +2,7 @@
 import asyncio
 import sys
 from typing import Optional
+from uuid import uuid4
 
 from rich.console import Console
 import typer
@@ -28,10 +29,10 @@ def main(
         config = AppConfig.from_env()
         config.validate()
         
-        agent, session_mgr = await create_agent_with_session(config)
+        agent, session_mgr, memory_storage = await create_agent_with_session(config)
         
         thread_config = session_mgr.get_thread_config(
-            session_id or str(uuid.uuid4())
+            session_id or str(uuid4())
         )
         
         ui = TerminalUI(agent, thread_config, console)

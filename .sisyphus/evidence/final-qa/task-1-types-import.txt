@@ -1,0 +1,15 @@
+# T1 QA - 类型定义可导入
+## 日期: 2026-03-15
+## 结果: ✅ 通过
+
+执行命令:
+```
+uv run python -c "from minerbot.types import MemoryEntity, EntityType, SessionSummary, MemoryRecord; print('OK')"
+```
+
+输出:
+```
+OK
+```
+
+验证: 无 ImportError 或语法错误

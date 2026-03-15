@@ -17,6 +17,10 @@ class AppConfig:
     minimax_base_url: str = "https://api.minimaxi.com/anthropic"
     minimax_model: str = "MiniMax-M2.5"
     model_provider: Optional[str] = None
+    memory_enabled: bool = True
+    memory_trigger_message_count: int = 10
+    memory_trigger_idle_minutes: int = 10
+    memory_summary_model: str = "claude-sonnet-4-6"
     
     @classmethod
     def from_env(cls) -> "AppConfig":
@@ -33,6 +37,10 @@ class AppConfig:
             minimax_base_url=os.getenv("MINIMAX_BASE_URL", "https://api.minimaxi.com/anthropic"),
             minimax_model=os.getenv("MINIMAX_MODEL", "MiniMax-M2.5"),
             model_provider=os.getenv("MODEL_PROVIDER"),
+            memory_enabled=os.getenv("MEMORY_ENABLED", "true").lower() == "true",
+            memory_trigger_message_count=int(os.getenv("MEMORY_TRIGGER_MESSAGE_COUNT", "10")),
+            memory_trigger_idle_minutes=int(os.getenv("MEMORY_TRIGGER_IDLE_MINUTES", "10")),
+            memory_summary_model=os.getenv("MEMORY_SUMMARY_MODEL", "claude-sonnet-4-6"),
         )
     
     def validate(self) -> None:

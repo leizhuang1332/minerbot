@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from deepagents import create_deep_agent
 from langchain_anthropic import ChatAnthropic
 from langgraph.store.sqlite.aio import AsyncSqliteStore
+from pydantic.types import SecretStr
 
 from ..config import AppConfig
 from ..tools.search import create_search_tool
@@ -14,6 +15,7 @@ if TYPE_CHECKING:
     from langchain_core.tools import BaseTool
     from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
     from langgraph.store.sqlite.aio import AsyncSqliteStore
+    from ..memory import MemoryStorage
 
 
 def create_agent(
@@ -44,16 +46,20 @@ def create_agent(
             model = ChatAnthropic(
                 model_name=config.minimax_model,
                 base_url=config.minimax_base_url,
-                api_key=config.minimax_api_key,
+                api_key=SecretStr(config.minimax_api_key),
                 temperature=config.temperature,
-                max_tokens=config.max_tokens,
+                max_tokens_to_sample=config.max_tokens,
+                timeout=None,
+                stop=None,
             )
         else:
             logger.info(f"使用 Anthropic 模型: {config.model_name}")
             model = ChatAnthropic(
                 model_name=config.model_name,
                 temperature=config.temperature,
-                max_tokens=config.max_tokens,
+                max_tokens_to_sample=config.max_tokens,
+                timeout=None,
+                stop=None,
             )
     except Exception as e:
         logger.error(f"模型初始化失败: {e}")
@@ -82,8 +88,13 @@ async def create_agent_with_session(config: AppConfig):
         config: 应用配置
         
     Returns:
-        (agent, session_manager) 元组
+        (agent, session_manager, memory_storage) 元组
     """
     session_mgr = await SessionManager.create(config)
     agent = create_agent(config, checkpointer=session_mgr.checkpointer, store=session_mgr.store)
-    return agent, session_mgr
+    
+    memory_storage: MemoryStorage | None = None
+    # TODO: T10 - 初始化 MemoryStorage
+    # memory_storage = await create_memory_storage(config)
+    
+    return agent, session_mgr, memory_storage

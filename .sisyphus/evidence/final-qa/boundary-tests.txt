@@ -1,0 +1,28 @@
+# 边界情况测试
+## 日期: 2026-03-15
+## 结果: ✅ 通过
+
+测试各种边界情况:
+1. 空消息列表序列化: 0 条
+2. EntityType 枚举值: ['person', 'location', 'event', 'relationship', 'context']
+3. 配置默认值: memory_enabled=True
+4. 空存储搜索: 0 条结果
+5. 特殊字符序列化: 正确处理换行符和回车符
+
+执行命令:
+```
+uv run python -c "边界情况测试代码"
+```
+
+输出:
+```
+=== 边界情况测试 ===
+✓ 1. 空消息列表: 0 条
+✓ 2. EntityType 枚举值: ['person', 'location', 'event', 'relationship', 'context']
+✓ 3. 配置默认值: memory_enabled=True
+✓ 4. 空存储搜索: 0 条结果
+✓ 5. 特殊字符序列化: 测试
+特殊字符
+
+✅ 边界情况测试全部通过
+```

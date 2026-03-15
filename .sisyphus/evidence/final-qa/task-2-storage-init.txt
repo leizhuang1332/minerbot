@@ -1,0 +1,20 @@
+# T2 QA - 存储层基本功能
+## 日期: 2026-03-15
+## 结果: ✅ 通过
+
+执行命令:
+```
+uv run python -c "
+from langgraph.store.memory import InMemoryStore
+from minerbot.memory.storage import MemoryStorage
+storage = MemoryStorage(InMemoryStore(), 'test')
+print('MemoryStorage created OK')
+"
+```
+
+输出:
+```
+MemoryStorage created OK
+```
+
+验证: MemoryStorage 类可实例化
