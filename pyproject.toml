@@ -17,6 +17,7 @@ dependencies = [
     "aiosqlite>=0.22.1",
     "langchain-openai>=1.1.10",
     "langchain-google-genai>=4.2.1",
+    "pydantic-settings>=2.13.1",
 ]
 
 [project.scripts]
