@@ -1,10 +1,9 @@
 {
-  "active_plan": "/Users/Ray/Documents/trae_projects/minerbot/.sisyphus/plans/super-agent-checkpointer.md",
-  "started_at": "2026-03-18T13:37:02.294Z",
+  "active_plan": "/Users/Ray/Documents/trae_projects/minerbot/.sisyphus/plans/super-agent-store.md",
+  "started_at": "2026-03-18T16:06:48.606Z",
   "session_ids": [
-    "ses_2feefd68affeWoQPi4dmxrdBMf"
+    "ses_2fe710354ffeS4EPdyM2xd3mwu"
   ],
-  "plan_name": "super_agent_checkpointer",
-  "agent": "atlas",
-  "worktree_path": "/Users/Ray/Documents/trae_projects/minerbot"
+  "plan_name": "super-agent-store",
+  "agent": "atlas"
 }
