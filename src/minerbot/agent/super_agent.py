@@ -5,6 +5,7 @@ from pydantic_settings import BaseSettings
 from deepagents import create_deep_agent, CompiledSubAgent
 from langchain.agents import create_agent
 from minerbot.llm.factory import LLMFactory
+from minerbot.agent.checkpointer import get_checkpointer
 from langchain_core.language_models import BaseChatModel
 
 # ========== 1. 配置加载（对齐你的架构） ==========
@@ -338,24 +339,30 @@ data_agent = CompiledSubAgent(
 
 # ========== 4. 主 Agent 整合（DeepAgents 入口） ==========
 
+# 初始化 checkpointer
+checkpointer = get_checkpointer()
+
 # 主 Agent（整合所有子 Agent）
 super_agent = create_deep_agent(
     model=llm,
     system_prompt="""
-    你是超级 AI 助手，核心职责：
-    1. 接收用户问题后，先调用 planner_agent 拆分任务并分配执行 Agent
-    2. 根据 planner_agent 的分配结果，依次调用对应的子 Agent 执行任务
-    3. 汇总所有子 Agent 的执行结果，生成最终的回答（清晰、完整、易懂）
+    你是善良友好的 AI 助手，你会礼貌热情的回应用户。
     """,
-    subagents=[planner_agent, tool_agent, rag_agent, code_agent, data_agent],
-    tools=[],  # 主 Agent 不直接调用工具，由子 Agent 执行
+    checkpointer=checkpointer,
+    # subagents=[planner_agent, tool_agent, rag_agent, code_agent, data_agent],
+    # tools=[],  # 主 Agent 不直接调用工具，由子 Agent 执行
 )
 
 # ========== 5. 测试运行（验证多 Agent 协作） ==========
 if __name__ == "__main__":
     # 测试示例：分析 sales.db 销售趋势并生成图表
-    user_query = "帮我分析 sales.db 中的销售趋势，生成折线图并保存到本地"
+    user_query = "我前面已经说过我香菜过敏了"
 
+    config = {
+        "configurable": {
+            "thread_id": "123456"
+        }
+    }
     # 调用主 Agent
     print("="*50)
     print("用户问题：", user_query)
@@ -371,10 +378,11 @@ if __name__ == "__main__":
 
         for chunk in super_agent.stream(
             input = {"messages": [{"role": "user", "content": user_query}]},
+            config=config,
             stream_mode=[
                 "updates",
                 "messages",
-                "tasks"
+                # "tasks"
             ]
         ):
             print("="*50)

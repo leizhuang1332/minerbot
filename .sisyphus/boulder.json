@@ -1,9 +1,10 @@
 {
-  "active_plan": "/Users/Ray/Documents/trae_projects/minerbot/.sisyphus/plans/llm-factory-implementation.md",
-  "started_at": "2026-03-17T13:46:23.311Z",
+  "active_plan": "/Users/Ray/Documents/trae_projects/minerbot/.sisyphus/plans/super-agent-checkpointer.md",
+  "started_at": "2026-03-18T13:37:02.294Z",
   "session_ids": [
-    "ses_303fba10affeA8SeGL4ckLRHJK"
+    "ses_2feefd68affeWoQPi4dmxrdBMf"
   ],
-  "plan_name": "llm-factory-implementation",
-  "agent": "atlas"
+  "plan_name": "super_agent_checkpointer",
+  "agent": "atlas",
+  "worktree_path": "/Users/Ray/Documents/trae_projects/minerbot"
 }
