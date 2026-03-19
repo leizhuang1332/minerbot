@@ -6,7 +6,8 @@ from deepagents import create_deep_agent, CompiledSubAgent
 from langchain.agents import create_agent
 from minerbot.llm.factory import LLMFactory
 from minerbot.agent.checkpointer import get_checkpointer
-from langchain_core.language_models import BaseChatModel
+from minerbot.agent.store import get_store
+from deepagents.backends import StoreBackend
 
 # ========== 1. 配置加载（对齐你的架构） ==========
 load_dotenv()  # 加载 .env 文件（存放模型/数据库密钥）
@@ -342,13 +343,18 @@ data_agent = CompiledSubAgent(
 # 初始化 checkpointer
 checkpointer = get_checkpointer()
 
+# 初始化 store
+store = get_store()
+
 # 主 Agent（整合所有子 Agent）
 super_agent = create_deep_agent(
     model=llm,
     system_prompt="""
     你是善良友好的 AI 助手，你会礼貌热情的回应用户。
     """,
+    backend=lambda rt: StoreBackend(rt),
     checkpointer=checkpointer,
+    store=store,
     # subagents=[planner_agent, tool_agent, rag_agent, code_agent, data_agent],
     # tools=[],  # 主 Agent 不直接调用工具，由子 Agent 执行
 )
@@ -356,11 +362,11 @@ super_agent = create_deep_agent(
 # ========== 5. 测试运行（验证多 Agent 协作） ==========
 if __name__ == "__main__":
     # 测试示例：分析 sales.db 销售趋势并生成图表
-    user_query = "我前面已经说过我香菜过敏了"
+    user_query = "你好，还记得我是谁吗？"
 
     config = {
         "configurable": {
-            "thread_id": "123456"
+            "thread_id": "123457"
         }
     }
     # 调用主 Agent
@@ -380,6 +386,7 @@ if __name__ == "__main__":
             input = {"messages": [{"role": "user", "content": user_query}]},
             config=config,
             stream_mode=[
+                # "values",
                 "updates",
                 "messages",
                 # "tasks"

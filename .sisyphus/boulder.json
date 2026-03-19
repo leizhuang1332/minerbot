@@ -1,9 +1,11 @@
 {
-  "active_plan": "/Users/Ray/Documents/trae_projects/minerbot/.sisyphus/plans/super-agent-store.md",
-  "started_at": "2026-03-18T16:06:48.606Z",
+  "active_plan": "/Users/Ray/Documents/trae_projects/minerbot/.sisyphus/plans/super-agent-sqlite-store.md",
+  "started_at": "2026-03-19T14:49:52.817Z",
   "session_ids": [
-    "ses_2fe710354ffeS4EPdyM2xd3mwu"
+    "ses_2f99be233ffeMwyuChcL4roZdo",
+    "ses_2f96c0e0affe1AaGnEwkaQMQi9",
+    "ses_2f969457fffeJpIPB4TmFWuIej"
   ],
-  "plan_name": "super-agent-store",
+  "plan_name": "super-agent-sqlite-store",
   "agent": "atlas"
 }
